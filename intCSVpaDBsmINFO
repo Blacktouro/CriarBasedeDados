@@ -1,0 +1,48 @@
+import csv
+import sqlite3
+
+# Função para criar a tabela no banco de dados
+def criar_tabela(cursor):
+    cursor.execute('''CREATE TABLE IF NOT EXISTS Apostastww (
+                        ID INTEGER PRIMARY KEY,
+                        Tipo_Aposta TEXT,
+                        Equipe_Casa TEXT,
+                        Equipe_Fora TEXT,
+                        Resultado TEXT,
+                        Odds REAL,
+                        Market TEXT,
+                        Informacao_Extra TEXT,
+                        Data TEXT,
+                        Montante REAL,
+                        Ganhos REAL)''')
+
+# Função para inserir os dados do CSV no banco de dados
+def inserir_dados(cursor, dados):
+    cursor.execute('''INSERT INTO Apostastww (Tipo_Aposta, Equipe_Casa, Equipe_Fora, Resultado, Odds, Market, Informacao_Extra, Data, Montante, Ganhos)
+                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', dados)
+
+# Função principal
+def main():
+    # Conectando-se ao banco de dados
+    conexao = sqlite3.connect('nova.db')
+    cursor = conexao.cursor()
+
+    # Criando a tabela se ela não existir
+    criar_tabela(cursor)
+
+    # Lendo os dados do arquivo CSV e inserindo no banco de dados
+    with open('apostas.csv', 'r', newline='', encoding='utf-8') as arquivo_csv:
+        leitor_csv = csv.reader(arquivo_csv)
+        next(leitor_csv)  # Pula o cabeçalho
+        for linha in leitor_csv:
+            # Verificando se a linha contém "multipas" ou "Informação não disponível"
+            if "Múltipla" not in linha and "Informação não disponível" not in linha:
+                # Inserir dados apenas se a linha não contiver "multipas" ou "Informação não disponível"
+                inserir_dados(cursor, linha)
+
+    # Commit das alterações e fechamento da conexão
+    conexao.commit()
+    conexao.close()
+
+if __name__ == '__main__':
+    main()
